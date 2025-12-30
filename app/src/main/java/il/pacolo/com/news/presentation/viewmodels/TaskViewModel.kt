@@ -1,6 +1,7 @@
 package il.pacolo.com.news.presentation.viewmodels
 
 
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
@@ -19,6 +20,8 @@ data class User(val userId:Int,val name:String)
 
 class TaskViewModel: ViewModel() {
 
+
+    private val _data = MutableLiveData<Int>()
     private val _state = MutableStateFlow<Int>(0)
     val state: StateFlow<Int> = _state.asStateFlow()
 
