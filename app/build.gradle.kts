@@ -41,6 +41,20 @@ android {
     buildFeatures {
         compose = true
     }
+
+    flavorDimensions += "client"
+
+    productFlavors {
+        create("dev") {
+            dimension = "client"
+            applicationId = "il.pacolo.com.news"
+        }
+
+        create("corp") { // ← your new flavor
+            dimension = "client"
+            applicationId = "il.pacolo.com.weather"
+        }
+    }
 }
 
 dependencies {
