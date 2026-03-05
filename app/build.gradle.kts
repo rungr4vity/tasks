@@ -130,4 +130,13 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 
 
+    // DataStore (persist last city)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Location
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+
 }

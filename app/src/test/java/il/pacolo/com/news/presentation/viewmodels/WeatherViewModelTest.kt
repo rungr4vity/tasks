@@ -11,18 +11,20 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import il.pacolo.com.news.data.local.LocationHelper
+import il.pacolo.com.news.data.local.WeatherPreferences
+import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WeatherViewModelTest {
 
-    @MockK
-    private lateinit var repository: WeatherRepository
+    @MockK lateinit var repository: WeatherRepository
+    @MockK lateinit var preferences: WeatherPreferences
+    @MockK lateinit var locationHelper: LocationHelper
 
     private lateinit var viewModel: WeatherViewModel
-
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    // Fake response
     private val fakeWeather = WeatherResponse(
         name = "New York",
         sys = Sys(country = "US"),
@@ -35,12 +37,34 @@ class WeatherViewModelTest {
     fun setup() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = WeatherViewModel(repository)
+
+        // Default stubs — override per test when needed
+        every { preferences.lastCity } returns flowOf(null)
+        coEvery { preferences.saveLastCity(any()) } just Runs
+
+        viewModel = WeatherViewModel(repository, preferences, locationHelper)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    // ─── Initial State ────────────────────────────────────────────
+
+    @Test
+    fun `initial weather state is null`() {
+        assertNull(viewModel.weather.value)
+    }
+
+    @Test
+    fun `initial error state is null`() {
+        assertNull(viewModel.error.value)
+    }
+
+    @Test
+    fun `initial loading state is false`() {
+        assertFalse(viewModel.isLoading.value)
     }
 
     // ─── fetchByCity ──────────────────────────────────────────────
@@ -53,6 +77,16 @@ class WeatherViewModelTest {
 
         assertEquals(fakeWeather, viewModel.weather.value)
         assertNull(viewModel.error.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `fetchByCity success - saves last city to preferences`() = runTest {
+        coEvery { repository.getWeatherByCity("New York") } returns fakeWeather
+
+        viewModel.fetchByCity("New York")
+
+        coVerify(exactly = 1) { preferences.saveLastCity("New York") }
     }
 
     @Test
@@ -63,6 +97,16 @@ class WeatherViewModelTest {
 
         assertNull(viewModel.weather.value)
         assertEquals("City not found", viewModel.error.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `fetchByCity failure - does not save to preferences`() = runTest {
+        coEvery { repository.getWeatherByCity(any()) } throws Exception("Error")
+
+        viewModel.fetchByCity("Unknown")
+
+        coVerify(exactly = 0) { preferences.saveLastCity(any()) }
     }
 
     @Test
@@ -75,12 +119,15 @@ class WeatherViewModelTest {
     }
 
     @Test
-    fun `fetchByCity empty city - still calls repository`() = runTest {
-        coEvery { repository.getWeatherByCity("") } throws Exception("Invalid city")
+    fun `second fetchByCity overwrites first result`() = runTest {
+        val secondWeather = fakeWeather.copy(name = "Los Angeles")
+        coEvery { repository.getWeatherByCity("New York") } returns fakeWeather
+        coEvery { repository.getWeatherByCity("Los Angeles") } returns secondWeather
 
-        viewModel.fetchByCity("")
+        viewModel.fetchByCity("New York")
+        viewModel.fetchByCity("Los Angeles")
 
-        assertEquals("Invalid city", viewModel.error.value)
+        assertEquals("Los Angeles", viewModel.weather.value?.name)
     }
 
     // ─── fetchByCoords ────────────────────────────────────────────
@@ -93,6 +140,7 @@ class WeatherViewModelTest {
 
         assertEquals(fakeWeather, viewModel.weather.value)
         assertNull(viewModel.error.value)
+        assertFalse(viewModel.isLoading.value)
     }
 
     @Test
@@ -114,29 +162,60 @@ class WeatherViewModelTest {
         coVerify(exactly = 1) { repository.getWeatherByCoords(40.71, -74.00) }
     }
 
-    // ─── Initial State ────────────────────────────────────────────
+    // ─── fetchByCurrentLocation ───────────────────────────────────
 
     @Test
-    fun `initial weather state is null`() {
-        assertNull(viewModel.weather.value)
-    }
+    fun `fetchByCurrentLocation success - fetches weather by coords`() = runTest {
+        coEvery { locationHelper.getCurrentLocation() } returns Pair(40.71, -74.00)
+        coEvery { repository.getWeatherByCoords(40.71, -74.00) } returns fakeWeather
 
-    @Test
-    fun `initial error state is null`() {
+        viewModel.fetchByCurrentLocation()
+
+        assertEquals(fakeWeather, viewModel.weather.value)
         assertNull(viewModel.error.value)
     }
 
-    // ─── State overwrite ─────────────────────────────────────────
+    @Test
+    fun `fetchByCurrentLocation failure - error state updated`() = runTest {
+        coEvery { locationHelper.getCurrentLocation() } throws Exception("GPS unavailable")
+
+        viewModel.fetchByCurrentLocation()
+
+        assertNull(viewModel.weather.value)
+        assertTrue(viewModel.error.value!!.contains("GPS unavailable"))
+    }
+
+    // ─── loadLastCity ─────────────────────────────────────────────
 
     @Test
-    fun `second fetchByCity overwrites first result`() = runTest {
-        val secondWeather = fakeWeather.copy(name = "Los Angeles")
-        coEvery { repository.getWeatherByCity("New York") } returns fakeWeather
-        coEvery { repository.getWeatherByCity("Los Angeles") } returns secondWeather
+    fun `loadLastCity with saved city - fetches weather`() = runTest {
+        every { preferences.lastCity } returns flowOf("Miami")
+        coEvery { repository.getWeatherByCity("Miami") } returns fakeWeather
 
-        viewModel.fetchByCity("New York")
-        viewModel.fetchByCity("Los Angeles")
+        // Recreate ViewModel so lastCity flow is picked up
+        viewModel = WeatherViewModel(repository, preferences, locationHelper)
+        viewModel.loadLastCity()
 
-        assertEquals("Los Angeles", viewModel.weather.value?.name)
+        assertEquals(fakeWeather, viewModel.weather.value)
+    }
+
+    @Test
+    fun `loadLastCity with null - does not fetch weather`() = runTest {
+        every { preferences.lastCity } returns flowOf(null)
+
+        viewModel.loadLastCity()
+
+        assertNull(viewModel.weather.value)
+        coVerify(exactly = 0) { repository.getWeatherByCity(any()) }
+    }
+
+    @Test
+    fun `loadLastCity with blank city - does not fetch weather`() = runTest {
+        every { preferences.lastCity } returns flowOf("   ")
+
+        viewModel.loadLastCity()
+
+        assertNull(viewModel.weather.value)
+        coVerify(exactly = 0) { repository.getWeatherByCity(any()) }
     }
 }
