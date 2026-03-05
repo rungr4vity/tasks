@@ -47,12 +47,28 @@ android {
     productFlavors {
         create("dev") {
             dimension = "client"
-            applicationId = "il.pacolo.com.news"
+            applicationId = "il.pacolo.com.weather.dev"
         }
 
         create("corp") { // ← your new flavor
             dimension = "client"
             applicationId = "il.pacolo.com.weather"
+        }
+    }
+
+
+    defaultConfig {
+        externalNativeBuild {
+            cmake {
+                cppFlags("-std=c++17")
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
         }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import il.pacolo.com.news.presentation.viewmodels.TaskViewModel
+import il.pacolo.com.news.security.NativeKeys
 import il.pacolo.com.news.ui.theme.NewsTheme
 import kotlin.math.log
 
@@ -42,6 +43,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+
+    Text(text = NativeKeys.getWeatherApiKey())
+}
+
+
+@Composable
+fun Greeting_(name: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
 
     val viewModel: TaskViewModel = viewModel()
     val nombre = rememberSaveable { mutableStateOf("") }

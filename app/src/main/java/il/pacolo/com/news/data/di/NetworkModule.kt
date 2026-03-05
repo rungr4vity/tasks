@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import il.pacolo.com.news.data.remote.ApiService
+import il.pacolo.com.news.security.NativeKeys
 import il.pacolo.com.news.utils.Constants
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -17,6 +18,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object  NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideApiKey():String = NativeKeys.getWeatherApiKey()
+
 
     //Retrofit
     @Provides
