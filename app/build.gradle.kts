@@ -83,6 +83,14 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
 
+    val retrofit_version = "2.9.0"
+    // Retrofit
+    implementation ("com.squareup.retrofit2:retrofit:$retrofit_version")
+    // Gson for JSON parsing
+    implementation ("com.squareup.retrofit2:converter-gson:$retrofit_version")
+    // Optional: Logging Interceptor for monitoring network requests (if needed)
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
