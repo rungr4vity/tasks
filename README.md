@@ -2,10 +2,12 @@
 Weather App is the application of science and technology to predict the conditions of the atmosphere for a given location and time.
 
 
+Using C++ (NDK) to Secure a Public Key in AndroidThe core idea is to move your key out of Kotlin/Java bytecode (easily decompiled with JADX) and into a native .so library, where it's significantly harder to extract.
+
 I used and deployed my app on Samsung Galaxy with Android 14
 Android Studio 
 
-![img.png](img.png)
+![img_1.png](img_1.png)
 
 i used MVVM and basic clean arch for maintenance,support and separation of concerns
 - Data layer (API Service and Repository) we can switch for offline data or live data just changing the repository
