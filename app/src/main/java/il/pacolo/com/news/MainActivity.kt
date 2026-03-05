@@ -16,11 +16,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dagger.hilt.android.AndroidEntryPoint
+import il.pacolo.com.news.presentation.screens.WeatherScreen
 import il.pacolo.com.news.presentation.viewmodels.TaskViewModel
 import il.pacolo.com.news.security.NativeKeys
 import il.pacolo.com.news.ui.theme.NewsTheme
 import kotlin.math.log
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,12 +31,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             NewsTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding),
-                        onClick = {
+                    WeatherScreen(
 
-                        }
                     )
                 }
             }

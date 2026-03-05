@@ -78,14 +78,14 @@ private val conditionEmoji: Map<WeatherCondition, String> = mapOf(
 
 
 @Composable
-fun WeatherScreen(
+fun WeatherScreen_(
     viewModel: WeatherViewModel = hiltViewModel()
 ) {
     val weather by viewModel.weather.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchWeatherByCity("New York")
+        //viewModel.fetchWeatherByCity("New York")
     }
 
     when {

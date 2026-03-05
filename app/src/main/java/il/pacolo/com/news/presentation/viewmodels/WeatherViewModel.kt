@@ -23,7 +23,7 @@ class WeatherViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    fun fetchWeatherByCity(city: String) {
+    fun fetchByCity(city: String) {
         viewModelScope.launch {
             runCatching { repository.getWeatherByCity(city) }
                 .onSuccess { _weather.value = it }
@@ -31,7 +31,7 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    fun fetchWeatherByCoords(lat: Double, lon: Double) {
+    fun fetchByCoords(lat: Double, lon: Double) {
         viewModelScope.launch {
             runCatching { repository.getWeatherByCoords(lat, lon) }
                 .onSuccess { _weather.value = it }
