@@ -3,7 +3,9 @@ Weather App is the application of science and technology to predict the conditio
 
 
 I used and deployed my app on Samsung Galaxy with Android 14
-Android Studio Koala
+Android Studio 
+
+![img.png](img.png)
 
 i used MVVM and basic clean arch for maintenance,support and separation of concerns
 - Data layer (API Service and Repository) we can switch for offline data or live data just changing the repository
